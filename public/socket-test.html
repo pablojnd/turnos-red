@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eventos TurnosRed</title>
+  </head>
+  <body>
+    <h1>Eventos TurnosRed</h1>
+    <p>Esta página muestra los eventos Socket.IO sin recargar.</p>
+    <ul id="eventos"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const lista = document.getElementById('eventos');
+
+      function mostrar(nombre, turno) {
+        const item = document.createElement('li');
+        item.textContent = `${nombre}: ${JSON.stringify(turno)}`;
+        lista.prepend(item);
+      }
+
+      socket.on('turno:nuevo', (turno) => mostrar('turno:nuevo', turno));
+      socket.on('turno:actualizado', (turno) =>
+        mostrar('turno:actualizado', turno),
+      );
+      socket.on('turno:eliminado', (turno) =>
+        mostrar('turno:eliminado', turno),
+      );
+    </script>
+  </body>
+</html>
