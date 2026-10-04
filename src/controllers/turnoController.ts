@@ -36,7 +36,7 @@ export function obtener(req: Request, res: Response): void {
 
   const turno = obtenerTurnoPorId(id);
   if (!turno) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Turno no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 
@@ -46,7 +46,7 @@ export function obtener(req: Request, res: Response): void {
 export function crear(req: Request, res: Response): void {
   const turno = crearTurno(req.body as TurnoCrudo);
   if (!turno) {
-    sendError(res, 400, 'Datos inválidos o ID repetido', 'BAD_REQUEST');
+    sendError(res, 409, 'Datos inválidos o ID duplicado', 'RESOURCE_CONFLICT');
     return;
   }
 
@@ -61,7 +61,7 @@ export function actualizar(req: Request, res: Response): void {
   }
 
   if (!obtenerTurnoPorId(id)) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Turno no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 
@@ -83,7 +83,7 @@ export function eliminar(req: Request, res: Response): void {
 
   const turno = eliminarTurno(id);
   if (!turno) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Turno no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 

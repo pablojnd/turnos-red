@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { Medico, MedicoCrudo } from '../models/medico.js';
 import { normalizarMedico } from '../utils/normalizarMedico.js';
+import { logger } from '../config/logger.js';
 
 let medicos: Medico[] = [];
 
@@ -53,6 +54,7 @@ export function crearMedico(datos: MedicoCrudo): Medico | null {
   if (!medico || obtenerMedicoPorId(medico.id)) return null;
 
   medicos.push(medico);
+  logger.info({ id: medico.id }, 'Médico creado');
   return medico;
 }
 
@@ -67,6 +69,7 @@ export function actualizarMedico(
   if (!medico) return null;
 
   medicos[indice] = medico;
+  logger.info({ id: medico.id }, 'Médico actualizado');
   return medico;
 }
 
@@ -75,5 +78,6 @@ export function eliminarMedico(id: number): Medico | null {
   if (indice === -1) return null;
 
   const [eliminado] = medicos.splice(indice, 1);
+  logger.info({ id: eliminado.id }, 'Médico eliminado');
   return eliminado;
 }

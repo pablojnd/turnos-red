@@ -11,6 +11,7 @@ import {
   crearMedicoSchema,
 } from '../schemas/medicoSchemas.js';
 import { validateBody } from '../schemas/validate.js';
+import { verificarToken } from '../middleware/verificarToken.js';
 
 export const medicoRouter = Router();
 
@@ -94,6 +95,8 @@ medicoRouter.get('/:id', obtener);
  * /medicos:
  *   post:
  *     summary: Registrar un nuevo médico
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -119,6 +122,12 @@ medicoRouter.get('/:id', obtener);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Medico'
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: Datos inválidos (validación Zod) o ID repetido
  *         content:
@@ -126,13 +135,15 @@ medicoRouter.get('/:id', obtener);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-medicoRouter.post('/', validateBody(crearMedicoSchema), crear);
+medicoRouter.post('/', verificarToken, validateBody(crearMedicoSchema), crear);
 
 /**
  * @swagger
  * /medicos/{id}:
  *   put:
  *     summary: Actualizar un médico existente
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -160,6 +171,12 @@ medicoRouter.post('/', validateBody(crearMedicoSchema), crear);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Medico'
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: Datos inválidos
  *         content:
@@ -173,13 +190,20 @@ medicoRouter.post('/', validateBody(crearMedicoSchema), crear);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-medicoRouter.put('/:id', validateBody(actualizarMedicoSchema), actualizar);
+medicoRouter.put(
+  '/:id',
+  verificarToken,
+  validateBody(actualizarMedicoSchema),
+  actualizar,
+);
 
 /**
  * @swagger
  * /medicos/{id}:
  *   delete:
  *     summary: Dar de baja un médico
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -189,6 +213,12 @@ medicoRouter.put('/:id', validateBody(actualizarMedicoSchema), actualizar);
  *     responses:
  *       204:
  *         description: Médico eliminado
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: ID inválido
  *         content:
@@ -202,4 +232,4 @@ medicoRouter.put('/:id', validateBody(actualizarMedicoSchema), actualizar);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-medicoRouter.delete('/:id', eliminar);
+medicoRouter.delete('/:id', verificarToken, eliminar);

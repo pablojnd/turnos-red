@@ -130,8 +130,8 @@ Abrir `http://localhost:3000/socket-test.html` para verlos sin recargar.
 
 ## Pruebas con Postman
 
-- Colección: `turnos-red.postman_collection.json` (importarla en Postman).
-- Variables: `baseUrl`, `turnoId`, `medicoId` (estas dos últimas se actualizan solas al crear).
+- Colección: `.docs/turnos-red.postman_collection.json` (importarla en Postman).
+- Variables: `baseUrl`, `token`, `turnoId`, `medicoId` (los tres últimos se actualizan solos al login o al crear).
 - Cada request incluye tests automáticos (status code y esquema JSON).
 - Hay casos de éxito, 400 por validación Zod y 404 — servirán también como Saved Responses del Mock Server.
 
@@ -177,11 +177,53 @@ sequenceDiagram
   end
 ```
 
+## Autenticación (JWT)
+
+- Registro: `POST /auth/registro` con `{ "nombre", "password", "rol"? }` → 201. La contraseña se guarda hasheada con bcryptjs.
+- Login: `POST /auth/login` con `{ "nombre", "password" }` → 200 y un `token` JWT (válido 2 h, firmado con `JWT_SECRET`, payload con `id` y `rol`).
+- Usar el token: header `Authorization: Bearer <token>` en las operaciones de escritura (POST/PUT/DELETE) de `/turnos` y `/medicos`. Los GET son públicos.
+- Respuestas 401: `AUTH_TOKEN_MISSING` si falta el header o `AUTH_TOKEN_INVALID` si el token es inválido/expiró.
+
+Flujo resumido:
+
+```bash
+curl -X POST http://localhost:3000/auth/registro -H 'Content-Type: application/json' -d '{"nombre":"admin","password":"secreto123","rol":"admin"}'
+curl -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{"nombre":"admin","password":"secreto123"}'
+curl -X POST http://localhost:3000/turnos -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{...}'
+```
+
+## Pruebas automatizadas
+
+```bash
+npm test
+```
+
+Suite con Jest + ts-jest + Supertest en tres capas: unitarias en `tests/unit` (capa de servicios con mocks de `node:fs/promises`), integración en `tests/integration` (Supertest contra la app Express) y E2E en `tests/e2e` (registro → login → crear → leer → actualizar → eliminar). El reporte de cobertura se genera con `--coverage`; la cobertura actual supera el 80 % en `src/services`.
+
+## Despliegue (Nginx)
+
+1. Configurar `.env` de producción: `NODE_ENV=production`, `LOG_LEVEL=error`, `JWT_SECRET` robusto, `PORT=3000`.
+2. Levantar la API: `npm run start:prod` (o vía PM2/systemd).
+3. Validar la configuración y arrancar Nginx:
+
+```bash
+nginx -t
+docker run --rm -p 80:80 -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx
+```
+
+Recomendaciones de seguridad: no publicar `JWT_SECRET` ni `.env`, rotar JWT_SECRET
+de forma consciente (invalida tokens vigentes), añadir TLS delante de Nginx en
+producción y mantener los logs de Pino sin contraseñas ni tokens.
+
 ## Uso de Inteligencia Artificial
 
-| Tarea             | Herramienta | Prompt                                          | Respuesta generada       | Ajuste manual aplicado                                      |
-| ----------------- | ----------- | ----------------------------------------------- | ------------------------ | ----------------------------------------------------------- |
-| Formato de error  | Claude      | "Unifica respuestas de error"                   | Helper de error estándar | Revisado y probado contra los endpoints                     |
-| Actualizar README | Claude      | "Actualiza el README con lo nuevo de la Act. 2" | Reescritura de secciones | Corrección de tablas y formato final                        |
-| Diagramas Mermaid | Claude      | "Componentes y secuencia de POST /turnos"       | Sintaxis Mermaid         | Corrección del flujo de validación y eventos                |
-| Plantillas ADR    | Claude      | "ADR-001 OpenAPI y ADR-002 JWT"                 | Secciones obligatorias   | Ajuste de fechas, estado y contexto                         |
+| Tarea              | Herramienta | Prompt                                                       | Respuesta generada                               | Ajuste manual aplicado                               |
+| ------------------ | ----------- | ------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------- |
+| Formato de error   | Claude      | "Unifica respuestas de error"                                | Helper de error estándar                         | Revisado y probado contra los endpoints              |
+| Actualizar README  | Claude      | "Actualiza el README con lo nuevo de la Act. 2"              | Reescritura de secciones                         | Corrección de tablas y formato final                 |
+| Diagramas Mermaid  | Claude      | "Componentes y secuencia de POST /turnos"                    | Sintaxis Mermaid                                 | Corrección del flujo de validación y eventos         |
+| Plantillas ADR     | Claude      | "ADR-001 OpenAPI y ADR-002 JWT"                              | Secciones obligatorias                           | Ajuste de fechas, estado y contexto                  |
+| JWT y bcryptjs     | Claude      | "Agrega authService con JWT y bcryptjs"                      | Rutas /auth/registro y /auth/login               | Ajuste de persistencia en data/usuarios.json         |
+| Middleware errores | Claude      | "Middleware central de errores con firma (err,req,res,next)" | app.ts con códigos de dominio                    | Ajuste de JSON inválido (SyntaxError) y _next        |
+| Morgan + Pino      | Claude      | "Configura Morgan y Pino con nivel por entorno"              | src/config/logger.ts                             | Hash de contraseñas fuera de logs y mensajes limpios |
+| nginx.conf         | Claude      | "Nginx proxy inverso hacia localhost:3000"                   | Configuración con Host/X-Real-IP/X-Forwarded-For | Cabeceras adicionales según consigna                 |

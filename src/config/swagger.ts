@@ -11,6 +11,13 @@ export const swaggerSpec = swaggerJsdoc({
     },
     servers: [{ url: 'http://localhost:3000' }],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
       schemas: {
         Turno: {
           type: 'object',

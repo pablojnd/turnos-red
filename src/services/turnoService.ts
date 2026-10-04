@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import type { Turno, TurnoCrudo } from '../models/turno.js';
 import { normalizarTurno } from '../utils/normalizarTurno.js';
 import { eventBus } from '../events/eventBus.js';
+import { logger } from '../config/logger.js';
 
 let turnos: Turno[] = [];
 
@@ -80,6 +81,7 @@ export function crearTurno(datos: TurnoCrudo): Turno | null {
 
   turnos.push(turno);
   eventBus.emit('turno:creado', turno);
+  logger.info({ id: turno.id }, 'Turno creado');
   return turno;
 }
 
@@ -92,6 +94,7 @@ export function actualizarTurno(id: number, datos: TurnoCrudo): Turno | null {
 
   turnos[indice] = turno;
   eventBus.emit('turno:actualizado', turno);
+  logger.info({ id: turno.id }, 'Turno actualizado');
   return turno;
 }
 
@@ -101,5 +104,6 @@ export function eliminarTurno(id: number): Turno | null {
 
   const [eliminado] = turnos.splice(indice, 1);
   eventBus.emit('turno:eliminado', eliminado);
+  logger.info({ id: eliminado.id }, 'Turno eliminado');
   return eliminado;
 }

@@ -1,47 +1,19 @@
 import 'dotenv/config';
 import http from 'node:http';
 import path from 'node:path';
-import express, {
-  type NextFunction,
-  type Request,
-  type Response,
-} from 'express';
 import { Server } from 'socket.io';
-import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './config/swagger.js';
+import { app } from './app.js';
 import { eventBus } from './events/eventBus.js';
-import { turnoRouter } from './routes/turnoRoutes.js';
-import { medicoRouter } from './routes/medicoRoutes.js';
 import { cargarTurnos } from './services/turnoService.js';
 import { cargarMedicos } from './services/medicoService.js';
-import { sendError } from './utils/errorResponse.js';
+import { cargarUsuarios } from './services/authService.js';
 import type { Turno } from './models/turno.js';
 
-const app = express();
 const servidor = http.createServer(app);
 const io = new Server(servidor);
 
 const puerto = Number(process.env.PORT ?? 3000);
 const rutaDatos = path.resolve(process.env.DATA_FILE ?? './data/turnos.json');
-
-app.use(express.json());
-app.use(express.static('public'));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/turnos', turnoRouter);
-app.use('/medicos', medicoRouter);
-
-app.get('/', (_req, res) => {
-  res.send('TurnosRed funcionando');
-});
-
-app.use((_req, res) => {
-  sendError(res, 404, 'Recurso no encontrado', 'NOT_FOUND');
-});
-
-app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error no controlado:', error);
-  sendError(res, 500, 'Error interno del servidor', 'INTERNAL_ERROR');
-});
 
 eventBus.on('turno:creado', (turno: Turno) => {
   io.emit('turno:nuevo', turno);
@@ -59,6 +31,7 @@ async function iniciar(): Promise<void> {
   try {
     await cargarTurnos(rutaDatos);
     await cargarMedicos('./data/medicos.json');
+    await cargarUsuarios('./data/usuarios.json');
 
     servidor.listen(puerto, () => {
       console.log(`Servidor ejecutándose en http://localhost:${puerto}`);

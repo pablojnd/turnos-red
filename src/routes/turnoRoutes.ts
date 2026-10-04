@@ -11,6 +11,7 @@ import {
   crearTurnoSchema,
 } from '../schemas/turnoSchemas.js';
 import { validateBody } from '../schemas/validate.js';
+import { verificarToken } from '../middleware/verificarToken.js';
 
 export const turnoRouter = Router();
 
@@ -98,6 +99,8 @@ turnoRouter.get('/:id', obtener);
  * /turnos:
  *   post:
  *     summary: Crear un nuevo turno
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -133,6 +136,12 @@ turnoRouter.get('/:id', obtener);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Turno'
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: Datos inválidos (validación Zod) o ID repetido
  *         content:
@@ -140,13 +149,15 @@ turnoRouter.get('/:id', obtener);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-turnoRouter.post('/', validateBody(crearTurnoSchema), crear);
+turnoRouter.post('/', verificarToken, validateBody(crearTurnoSchema), crear);
 
 /**
  * @swagger
  * /turnos/{id}:
  *   put:
  *     summary: Actualizar un turno existente
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -184,6 +195,12 @@ turnoRouter.post('/', validateBody(crearTurnoSchema), crear);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Turno'
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: Datos inválidos
  *         content:
@@ -197,13 +214,20 @@ turnoRouter.post('/', validateBody(crearTurnoSchema), crear);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-turnoRouter.put('/:id', validateBody(actualizarTurnoSchema), actualizar);
+turnoRouter.put(
+  '/:id',
+  verificarToken,
+  validateBody(actualizarTurnoSchema),
+  actualizar,
+);
 
 /**
  * @swagger
  * /turnos/{id}:
  *   delete:
  *     summary: Eliminar un turno
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -213,6 +237,12 @@ turnoRouter.put('/:id', validateBody(actualizarTurnoSchema), actualizar);
  *     responses:
  *       204:
  *         description: Turno eliminado
+ *       401:
+ *         description: Token faltante o inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       400:
  *         description: ID inválido
  *         content:
@@ -226,4 +256,4 @@ turnoRouter.put('/:id', validateBody(actualizarTurnoSchema), actualizar);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-turnoRouter.delete('/:id', eliminar);
+turnoRouter.delete('/:id', verificarToken, eliminar);

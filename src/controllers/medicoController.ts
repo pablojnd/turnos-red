@@ -37,7 +37,7 @@ export function obtener(req: Request, res: Response): void {
 
   const medico = obtenerMedicoPorId(id);
   if (!medico) {
-    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Médico no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 
@@ -47,7 +47,7 @@ export function obtener(req: Request, res: Response): void {
 export function crear(req: Request, res: Response): void {
   const medico = crearMedico(req.body as MedicoCrudo);
   if (!medico) {
-    sendError(res, 400, 'Datos inválidos o ID repetido', 'BAD_REQUEST');
+    sendError(res, 409, 'Datos inválidos o ID duplicado', 'RESOURCE_CONFLICT');
     return;
   }
 
@@ -62,7 +62,7 @@ export function actualizar(req: Request, res: Response): void {
   }
 
   if (!obtenerMedicoPorId(id)) {
-    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Médico no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 
@@ -84,7 +84,7 @@ export function eliminar(req: Request, res: Response): void {
 
   const medico = eliminarMedico(id);
   if (!medico) {
-    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
+    sendError(res, 404, 'Médico no encontrado', 'RESOURCE_NOT_FOUND');
     return;
   }
 
