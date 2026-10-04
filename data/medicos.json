@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "nombre": " Dra. Ana Torres ",
+    "especialidad": "Clínica médica",
+    "disponible": true
+  },
+  {
+    "id": "2",
+    "nombre": "Dr. Luis Pérez",
+    "especialidad": "Pediatría",
+    "disponible": true
+  },
+  {
+    "id": "3",
+    "nombre": "Dra. María Gómez",
+    "especialidad": "Odontología",
+    "disponible": "no"
+  },
+  {
+    "id": "4",
+    "nombre": "Lic. Sofía Ruiz",
+    "especialidad": "Nutrición",
+    "disponible": "si"
+  }
+]

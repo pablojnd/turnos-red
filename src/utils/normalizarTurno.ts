@@ -39,10 +39,14 @@ export function normalizarTurno(crudo: TurnoCrudo): Turno | null {
   const hora = crudo.hora ? normalizarHora(crudo.hora) : '';
   const confirmado = normalizarConfirmado(crudo.confirmado);
   const observaciones = crudo.observaciones?.trim();
+  const medicoId =
+    crudo.medicoId !== undefined ? Number(crudo.medicoId) : undefined;
 
   if (!Number.isInteger(id) || id <= 0) return null;
   if (!paciente || !documento || !especialidad || !fecha || !hora) return null;
   if (confirmado === null) return null;
+  if (medicoId !== undefined && (!Number.isInteger(medicoId) || medicoId <= 0))
+    return null;
 
   return {
     id,
@@ -53,5 +57,6 @@ export function normalizarTurno(crudo: TurnoCrudo): Turno | null {
     hora,
     confirmado,
     ...(observaciones ? { observaciones } : {}),
+    ...(medicoId !== undefined ? { medicoId } : {}),
   };
 }

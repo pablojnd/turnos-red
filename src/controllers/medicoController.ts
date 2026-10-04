@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
-import type { TurnoCrudo } from '../models/turno.js';
+import type { MedicoCrudo } from '../models/medico.js';
 import {
-  actualizarTurno,
-  crearTurno,
-  eliminarTurno,
-  obtenerTurnoPorId,
-  obtenerTurnos,
-} from '../services/turnoService.js';
+  actualizarMedico,
+  crearMedico,
+  eliminarMedico,
+  obtenerMedicoPorId,
+  obtenerMedicos,
+} from '../services/medicoService.js';
 import { sendError } from '../utils/errorResponse.js';
 
 function leerId(valor: unknown): number | null {
@@ -15,16 +15,17 @@ function leerId(valor: unknown): number | null {
 }
 
 export function listar(req: Request, res: Response): void {
-  const turnos = obtenerTurnos({
+  const medicos = obtenerMedicos({
     especialidad:
       typeof req.query.especialidad === 'string'
         ? req.query.especialidad
         : undefined,
-    fecha: typeof req.query.fecha === 'string' ? req.query.fecha : undefined,
-    medicoId:
-      typeof req.query.medicoId === 'string' ? req.query.medicoId : undefined,
+    disponible:
+      typeof req.query.disponible === 'string'
+        ? req.query.disponible
+        : undefined,
   });
-  res.status(200).json(turnos);
+  res.status(200).json(medicos);
 }
 
 export function obtener(req: Request, res: Response): void {
@@ -34,23 +35,23 @@ export function obtener(req: Request, res: Response): void {
     return;
   }
 
-  const turno = obtenerTurnoPorId(id);
-  if (!turno) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+  const medico = obtenerMedicoPorId(id);
+  if (!medico) {
+    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
     return;
   }
 
-  res.status(200).json(turno);
+  res.status(200).json(medico);
 }
 
 export function crear(req: Request, res: Response): void {
-  const turno = crearTurno(req.body as TurnoCrudo);
-  if (!turno) {
+  const medico = crearMedico(req.body as MedicoCrudo);
+  if (!medico) {
     sendError(res, 400, 'Datos inválidos o ID repetido', 'BAD_REQUEST');
     return;
   }
 
-  res.status(201).json(turno);
+  res.status(201).json(medico);
 }
 
 export function actualizar(req: Request, res: Response): void {
@@ -60,18 +61,18 @@ export function actualizar(req: Request, res: Response): void {
     return;
   }
 
-  if (!obtenerTurnoPorId(id)) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+  if (!obtenerMedicoPorId(id)) {
+    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
     return;
   }
 
-  const turno = actualizarTurno(id, req.body as TurnoCrudo);
-  if (!turno) {
+  const medico = actualizarMedico(id, req.body as MedicoCrudo);
+  if (!medico) {
     sendError(res, 400, 'Datos inválidos', 'BAD_REQUEST');
     return;
   }
 
-  res.status(200).json(turno);
+  res.status(200).json(medico);
 }
 
 export function eliminar(req: Request, res: Response): void {
@@ -81,9 +82,9 @@ export function eliminar(req: Request, res: Response): void {
     return;
   }
 
-  const turno = eliminarTurno(id);
-  if (!turno) {
-    sendError(res, 404, 'Turno no encontrado', 'NOT_FOUND');
+  const medico = eliminarMedico(id);
+  if (!medico) {
+    sendError(res, 404, 'Médico no encontrado', 'NOT_FOUND');
     return;
   }
 

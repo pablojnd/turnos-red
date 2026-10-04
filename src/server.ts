@@ -9,7 +9,10 @@ import express, {
 import { Server } from 'socket.io';
 import { eventBus } from './events/eventBus.js';
 import { turnoRouter } from './routes/turnoRoutes.js';
+import { medicoRouter } from './routes/medicoRoutes.js';
 import { cargarTurnos } from './services/turnoService.js';
+import { cargarMedicos } from './services/medicoService.js';
+import { sendError } from './utils/errorResponse.js';
 import type { Turno } from './models/turno.js';
 
 const app = express();
@@ -22,14 +25,19 @@ const rutaDatos = path.resolve(process.env.DATA_FILE ?? './data/turnos.json');
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/turnos', turnoRouter);
+app.use('/medicos', medicoRouter);
 
 app.get('/', (_req, res) => {
   res.send('TurnosRed funcionando');
 });
 
+app.use((_req, res) => {
+  sendError(res, 404, 'Recurso no encontrado', 'NOT_FOUND');
+});
+
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error no controlado:', error);
-  res.status(500).json({ error: 'Error interno del servidor' });
+  sendError(res, 500, 'Error interno del servidor', 'INTERNAL_ERROR');
 });
 
 eventBus.on('turno:creado', (turno: Turno) => {
@@ -47,6 +55,7 @@ eventBus.on('turno:eliminado', (turno: Turno) => {
 async function iniciar(): Promise<void> {
   try {
     await cargarTurnos(rutaDatos);
+    await cargarMedicos('./data/medicos.json');
 
     servidor.listen(puerto, () => {
       console.log(`Servidor ejecutándose en http://localhost:${puerto}`);

@@ -33,8 +33,41 @@ export async function cargarTurnos(rutaArchivo: string): Promise<void> {
   }
 }
 
-export function obtenerTurnos(): Turno[] {
-  return turnos;
+const sinAcentos = (texto: string): string =>
+  texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+export function obtenerTurnos(filtros?: {
+  especialidad?: string;
+  fecha?: string;
+  medicoId?: string;
+}): Turno[] {
+  let resultado = turnos;
+
+  if (filtros?.especialidad) {
+    const valor = sinAcentos(filtros.especialidad);
+    resultado = resultado.filter((turno) =>
+      sinAcentos(turno.especialidad).includes(valor),
+    );
+  }
+
+  if (filtros?.fecha) {
+    let buscado = filtros.fecha.trim();
+    if (buscado.includes('/')) {
+      const [dia, mes, anio] = buscado.split('/');
+      buscado = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    }
+    resultado = resultado.filter((turno) => turno.fecha === buscado);
+  }
+
+  if (filtros?.medicoId) {
+    const buscado = Number(filtros.medicoId);
+    resultado = resultado.filter((turno) => turno.medicoId === buscado);
+  }
+
+  return resultado;
 }
 
 export function obtenerTurnoPorId(id: number): Turno | undefined {
