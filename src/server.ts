@@ -7,6 +7,8 @@ import express, {
   type Response,
 } from 'express';
 import { Server } from 'socket.io';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import { eventBus } from './events/eventBus.js';
 import { turnoRouter } from './routes/turnoRoutes.js';
 import { medicoRouter } from './routes/medicoRoutes.js';
@@ -24,6 +26,7 @@ const rutaDatos = path.resolve(process.env.DATA_FILE ?? './data/turnos.json');
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/turnos', turnoRouter);
 app.use('/medicos', medicoRouter);
 

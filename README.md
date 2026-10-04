@@ -135,9 +135,53 @@ Abrir `http://localhost:3000/socket-test.html` para verlos sin recargar.
 - Cada request incluye tests automáticos (status code y esquema JSON).
 - Hay casos de éxito, 400 por validación Zod y 404 — servirán también como Saved Responses del Mock Server.
 
+## Diagramas de arquitectura (Mermaid)
+
+```mermaid
+flowchart LR
+  Cliente[Cliente Web / Postman] --> Rutas[Rutas Express<br/>src/routes]
+  Rutas --> Esquemas[Middleware Zod<br/>src/schemas]
+  Esquemas --> Controladores[Controladores<br/>src/controllers]
+  Controladores --> Servicios[Servicios<br/>src/services]
+  Servicios --> Persist[Persistencia JSON<br/>turnos.json / medicos.json]
+  Servicios --> Bus[EventEmitter<br/>src/events]
+  Bus --> Socket[Servidor Socket.IO]
+  Socket --> WS[Clientes WebSocket]
+```
+
+```mermaid
+sequenceDiagram
+  participant C as Cliente
+  participant R as src/routes
+  participant Z as Middleware Zod
+  participant Ctrl as Controller
+  participant S as Service
+  participant FS as JSON (memoria)
+  participant E as EventEmitter
+  participant IO as Socket.IO
+  participant WS as Clientes WebSocket
+
+  C->>R: POST /turnos
+  R->>Z: validateBody
+  alt Validación falla
+    Z-->>C: 400 VALIDATION_ERROR
+  else Validación ok
+    Z->>Ctrl: body validado
+    Ctrl->>S: crearTurno()
+    S->>FS: agrega turno (memoria)
+    S->>E: emit('turno:creado')
+    E->>IO: turno:nuevo
+    IO-->>WS: turno:nuevo
+    S-->>Ctrl: turno creado
+    Ctrl-->>C: 201 Created
+  end
+```
+
 ## Uso de Inteligencia Artificial
 
-| Tarea             | Herramienta | Prompt                                          | Respuesta generada            | Ajuste manual aplicado                                   |
-| ----------------- | ----------- | ----------------------------------------------- | ----------------------------- | -------------------------------------------------------- |
-| Formato de error  | Claude   | "Unifica respuestas de error"                   | Helper de error estándar      | Revisado y probado contra los endpoints                  |
-| Actualizar README | Claude   | "Actualiza el README con lo nuevo de la Act. 2" | Reescritura de secciones      | Corrección de tablas y formato final                     |
+| Tarea             | Herramienta | Prompt                                          | Respuesta generada       | Ajuste manual aplicado                                      |
+| ----------------- | ----------- | ----------------------------------------------- | ------------------------ | ----------------------------------------------------------- |
+| Formato de error  | Claude      | "Unifica respuestas de error"                   | Helper de error estándar | Revisado y probado contra los endpoints                     |
+| Actualizar README | Claude      | "Actualiza el README con lo nuevo de la Act. 2" | Reescritura de secciones | Corrección de tablas y formato final                        |
+| Diagramas Mermaid | Claude      | "Componentes y secuencia de POST /turnos"       | Sintaxis Mermaid         | Corrección del flujo de validación y eventos                |
+| Plantillas ADR    | Claude      | "ADR-001 OpenAPI y ADR-002 JWT"                 | Secciones obligatorias   | Ajuste de fechas, estado y contexto                         |
